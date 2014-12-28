@@ -67,6 +67,10 @@
      */
     SummaryTable.prototype.recursionGroupData = function (arrSource, newArr, groupFields) {
         if (groupFields.length > 0) {
+            var parent;
+            if (arguments.length > 3) {
+                parent = arguments[3];
+            }
             var groupField = groupFields[0];
             var oldArr = cloneArray(arrSource);
             if (isArray(newArr)) {
@@ -102,9 +106,12 @@
                         var rowspan = lastObj[sumProperty].length;
                         if (blNeedVSum) {
                             rowspan += 1;
+                            if (parent) {
+                                addValue(parent,rowspanAttr, 1);
+                            }
                         }
                         lastObj[rowspanAttr] = rowspan;//更新rowspan
-                        this.recursionGroupData(lastGroupArr, lastObj[sumProperty], restGroupFields);
+                        this.recursionGroupData(lastGroupArr, lastObj[sumProperty], restGroupFields,lastObj);
                     }
                     lastObj = {};
                     lastObj[groupField] = obj[groupField];
@@ -124,12 +131,18 @@
                     var rowspan = lastObj[sumProperty].length;
                     if (blNeedVSum) {
                         rowspan += 1;
+                        if (parent) {
+                            addValue(parent,rowspanAttr, 1);
+                        }
                     }
                     lastObj[rowspanAttr] = rowspan;//更新rowspan
-                    this.recursionGroupData(tempGroupArr, endObj[sumProperty], restGroupFields);
+                    this.recursionGroupData(tempGroupArr, endObj[sumProperty], restGroupFields,lastObj);
                 }
                 if (groupFields.length == 1) {//最后一级的分组
                     addValue(newArr[newArr.length - 1], rowspanAttr, 1);
+                    if (blNeedHSum) {
+                        this.addHSumValue(obj);
+                    }
                 }
                 if (blNeedVSum) {
                     for (var j in obj) {
@@ -137,9 +150,6 @@
                             addValue(sumObj, j, obj[j]);
                         }
                     }
-                }
-                if (blNeedHSum) {
-                    this.addHSumValue(obj);
                 }
             }
             if (blNeedVSum) {
@@ -229,7 +239,7 @@
                 if (i > 0) {
                     tr += '<tr>';
                 }
-                tr += this.setUnGroupFieldsTdHtml(group);
+                tr += this.setUnGroupFieldsTdHtml(detail);
                 if (this.config.blNeedHSum) {
                     tr += '<td>' + detail[option.hSumName] + '</td>';
                 }
@@ -245,9 +255,10 @@
      */
     SummaryTable.prototype.setUnGroupFieldsTdHtml = function (detail) {
         var td = '';
-        for (var i = 0; i < this.config.unGroupFields; i++) {
+        for (var i = 0; i < this.config.unGroupFields.length; i++) {
             td += '<td>';
-            td += this.setFieldDisplayValue(i,detail[i]) || '';
+            var field = this.config.unGroupFields[i];
+            td += this.setFieldDisplayValue(field,detail[field]);
             td += '</td>';
         }
         return td;
@@ -260,10 +271,14 @@
      */
     SummaryTable.prototype.setFieldDisplayValue = function (field, value) {
         var fieldConfig = this.config.dictFields[field];
+        var displayValue = value;
         if (fieldConfig&&fieldConfig.nameSource&&!isOwnEmpty(fieldConfig.nameSource)) {
-            return fieldConfig.nameSource[value] || '';
+            displayValue=fieldConfig.nameSource[value];
         }
-        return value;
+        if (displayValue == undefined) {
+            displayValue = '';
+        }
+        return displayValue;
     }
 
 

@@ -46,11 +46,13 @@
     var data = testData.rows;
     var config = [
         { field: 'CompanyID', isGroupField: true },
-        { field: 'TaskStatus', isGroupField: true, nameSource: { 1: '未开工', 3: '已完成', 0: '未审核' } },
+        { field: 'TaskStatus', isGroupField: true, nameSource:
+            { '-1':'全部','0':'未审核',1: '未开工', 3: '已完成', 4:'暂停',5: '终止', } 
+    },
         { field: 'StrengthGrade', isGroupField: true },
         { field: 'TaskNumber' },
         { field: 'SupplyNum', vSum: true, hSum: true },
-        { field: 'PanCount',vSum:true,hSum:true }
+        { field: 'PanCount',vSum:true,hSum:false }
     ];
     $(function () {
         var st = new SummaryTable(data, config);
